@@ -1,0 +1,107 @@
+CLEAR STORAGE 1     ,008015,022026,030037,044,049,053053N000000N00001026                                         1
+CLEAR STORAGE 2     L068116,105106,110117B101/I9I#071029C029056B026/B001/0991,001/001117I0?                      2
+BOOTSTRAP           ,008015,022029,036040,047054,061068,072/061039              ,0010011040                      3
+ 
+                          CONVERT FIVE-DIGIT NUMBER TO AN ADDRESS                                        PAGE    1
+ 
+ SEQ PG LIN  LABEL  OP    OPERANDS                                            SFX CT  LOCN  INSTRUCTION TYPE  CARD A-ADDR  B-ADDR
+
+ 101                JOB   CONVERT FIVE-DIGIT NUMBER TO AN ADDRESS
+ 102                CTL   6611
+ 103         X1     EQU   089                                                         0089
+ 104         FIVE   EQU   205                                                         0205
+ 105         THREE  EQU   210                                                         0210
+ 106                ORG   336                                                                0336
+ 107         ZONES  DCW   @2SKB@                                                   4  0339                       4
+ 108         ADR    DCW   #5                                                       5  0344                       4
+ 109         NUMBER DCW   #5                                                       5  0349                       4
+ 110         START  SW    THREE-2                                                  4  0350  , 208                4   208
+ 111                LCA   &15999,NUMBER                                            7  0354  L 518 349            4   518     349
+ 112         OUTER  MCW   NUMBER,ADR    NUMBER TO CONVERT                          7  0361  M 349 344            4   349     344
+ 113                B     CONV          CONVERT IT TO AN ADDRESS                   4  0368  B 523                4   523
+ 114                MCW   ADR,THREE                                                7  0372  M 344 210            5   344     210
+ 115                MCS   NUMBER,FIVE                                              7  0379  Z 349 205            5   349     205
+ 116                W                                                              1  0386  2                    5
+ 117                S     &1000,NUMBER  SUBTRACT 1000                              7  0387  S 522 349            5   522     349
+ 118                BM    TWO,NUMBER    Q. DONE                                    8  0394  V 406 349 K          5   406     349
+ 119                B     OUTER         NO                                         4  0402  B 361                5   361
+ 120         TWO    LCA   &15999,NUMBER                                            7  0406  L 518 349            6   518     349
+ 121         OUTER2 MCW   NUMBER,ADR    NUMBER TO CONVERT                          7  0413  M 349 344            6   349     344
+ 122                B     CONV2         CONVERT IT TO AN ADDRESS                   4  0420  B 571                6   571
+ 123                MCW   ADR,THREE                                                7  0424  M 344 210            6   344     210
+ 124                MCS   NUMBER,FIVE                                              7  0431  Z 349 205            6   349     205
+ 125                W                                                              1  0438  2                    6
+ 126                S     &1000,NUMBER  SUBTRACT 1000                              7  0439  S 522 349            7   522     349
+ 127                BM    FAST,NUMBER   Q. DONE                                    8  0446  V 458 349 K          7   458     349
+ 128                B     OUTER2        NO                                         4  0454  B 413                7   413
+ 129         FAST   LCA   &15999,NUMBER                                            7  0458  L 518 349            7   518     349
+ 130         OUTER3 MCW   NUMBER,ADR    NUMBER TO CONVERT                          7  0465  M 349 344            7   349     344
+ 131                B     CONV3         CONVERT IT TO AN ADDRESS                   4  0472  B 626                7   626
+ 132                MCW   ADR,THREE                                                7  0476  M 344 210            8   344     210
+ 133                MCS   NUMBER,FIVE                                              7  0483  Z 349 205            8   349     205
+ 134                W                                                              1  0490  2                    8
+ 135                S     &1000,NUMBER  SUBTRACT 1000                              7  0491  S 522 349            8   522     349
+ 136                BM    DONE,NUMBER   Q. DONE                                    8  0498  V 510 349 K          8   510     349
+ 137                B     OUTER3        NO                                         4  0506  B 465                8   465
+ 138         DONE   H     DONE                                                     4  0510  . 510                8   510
+ 139                LTORG *                                                                  0514
+                    DCW   &15999                                                   5  0518              LIT      9
+                    DCW   &1000                                                    4  0522              LIT      9
+ 140         *
+ 141         * SMALLEST ROUTINE TO CONVERT THE FIVE-DIGIT NUMBER IN ADR TO
+ 142         * A THREE CHARACTER ADDRESS, IN PLACE.  NEEDS THE DIGIT PART
+ 143         * OF THE LAST CHARACTER OF THE ADDRESS OF ZONES TO BE NINE.
+ 144         *
+ 145         CONV   SBR   CONVX&3                                                  4  0523  H 568                9   568
+                          CONVERT FIVE-DIGIT NUMBER TO AN ADDRESS                                        PAGE    2
+ 
+ SEQ PG LIN  LABEL  OP    OPERANDS                                            SFX CT  LOCN  INSTRUCTION TYPE  CARD A-ADDR  B-ADDR
+
+ 146                BAV   *&1           TURN OFF OVERFLOW                          5  0527  B 532 Z              9   532
+ 147         LOOP   A     @96@,ADR-3                                               7  0532  A 570 341            9   570     341
+ 148                BAV   LOOP                                                     5  0539  B 532 Z              9   532
+ 149                MZ    ADR-4,ADR                                                7  0544  Y 340 344            9   340     344
+ 150                MN    ADR-3,*&4                                                7  0551  D 341 561           10   341     561
+ 151                MZ    ZONES-0,ADR-2                                            7  0558  Y 339 342           10   339     342
+ 152         CONVX  B     0-0                                                      4  0565  B 000               10   000
+ 153                LTORG *                                                                  0569
+                    DCW   @96@                                                     2  0570              LIT     10
+ 154         *
+ 155         * ONE THAT WORKS SIMILARLY, BUT USES X1 AND DOESN'T NEED ZONES
+ 156         * TO BE AT A PARTICULAR LOCATION.  SAVING AND RESTORING X1
+ 157         * WOULD MAKE IT BIGGER AND SLOWER.
+ 158         *
+ 159         CONV2  SBR   CONV2X&3                                                 4  0571  H 623               10   623
+ 160                SBR   X1,0                                                     7  0575  H 089 000           10   089     000
+ 161                BAV   *&1           TURN OFF OVERFLOW                          5  0582  B 587 Z             10   587
+ 162         LOOP2  A     @96@,ADR-3                                               7  0587  A 625 341           11   625     341
+ 163                BAV   LOOP2                                                    5  0594  B 587 Z             11   587
+ 164                MZ    ADR-4,ADR                                                7  0599  Y 340 344           11   340     344
+ 165                MN    ADR-3,X1                                                 7  0606  D 341 089           11   341     089
+ 166                MZ    ZONES-9&X1,ADR-2                                         7  0613  Y 3T0 342           11   330+1   342
+ 167         CONV2X B     0-0                                                      4  0620  B 000               11   000
+ 168                LTORG *                                                                  0624
+                    DCW   @96@                                                     2  0625              LIT     11
+ 169         *
+ 170         * FASTEST ROUTINE TO CONVERT THE FIVE-DIGIT NUMBER IN ADR TO
+ 171         * A THREE CHARACTER ADDRESS, IN PLACE.  USES X1.  WOULD BE
+ 172         * SLOWER AND 14 CHARACTERS LONGER IF IT SAVED AND RESTORED X1.
+ 173         *
+ 174         CONV3  SBR   CONV3X&3                                                 4  0626  H 658               12   658
+ 175                MCW   ADR-3,X1                                                 7  0630  M 341 089           12   341     089
+ 176                MCW   @0@                                                      4  0637  M 691               12   691
+ 177                MZ    HZONE-15&X1,ADR-2                                        7  0641  Y 6V9 342           12   659+1   342
+ 178                MZ    LZONE-15&X1,ADR                                          7  0648  Y 6X5 344           12   675+1   344
+ 179         CONV3X B     0-0                                                      4  0655  B 000               12   000
+ 180         HZONE  DCW   @9ZRI9ZRI9ZRI9ZRI@                                      16  0674                      13
+ 181         LZONE  DCW   @9999ZZZZRRRRIIII@                                      16  0690                      13
+                    DCW   @0@                                                      1  0691              LIT     13
+ 182                END   START                                                             / 350 080                350
+                                                                                                         PAGE    3
+ 
+SYMBOL   ADDRESS    SYMBOL   ADDRESS    SYMBOL   ADDRESS    SYMBOL   ADDRESS    SYMBOL   ADDRESS    SYMBOL   ADDRESS
+
+ADR      0344: 0    CONV     0523: 0    CONV2    0571: 0    CONV2X   0620: 0    CONV3    0626: 0    CONV3X   0655: 0
+CONVX    0565: 0    DONE     0510: 0    FAST     0458: 0    FIVE     0205: 0    HZONE    0674: 0    LOOP     0532: 0
+LOOP2    0587: 0    LZONE    0690: 0    NUMBER   0349: 0    OUTER    0361: 0    OUTER2   0413: 0    OUTER3   0465: 0
+START    0350: 0    THREE    0210: 0    TWO      0406: 0    X1       0089: 0    ZONES    0339: 0
